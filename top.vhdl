@@ -24,9 +24,9 @@ entity top is
         led_left         : out std_logic;
         led_center       : out std_logic;
         led_right        : out std_logic;
-        led_bottom       : out std_logic;
+        led_bottom       : out std_logic
     );
-end top;
+end;
  
 --
 -- Module implementation
@@ -53,19 +53,19 @@ architecture main of top is
     
     signal reset : std_logic := '1';
 
-    signal uart_rx_reset      : std_logic;
-    signal uart_received_byte : out std_logic_vector(7 downto 0);
-    signal uart_byte_ready    : signal := '0';
+    signal uart_rx_reset      : std_logic := '1';
+    signal uart_received_byte : std_logic_vector(7 downto 0);
+    signal uart_byte_ready    : std_logic := '0';
 
 begin
     -- manage reset signals
     reset <= '0' after 30ns;
     
     -- instantiate included entities
-    my_uart_receiver: pll
+    my_uart_receiver: uart_rx
     port map(
             clock_12mhz      => clock_12mhz,
-            reset            => reset or uart_rx_reset,
+            reset            => uart_rx_reset,
             rx               => rx,
             received_byte    => uart_received_byte,
             byte_ready       => uart_byte_ready
@@ -74,19 +74,22 @@ begin
     --
     -- Interpreter for via UART received bytes
     --
-    process(uart_byte_ready)
-        constant a: std_logic_vector(7 downto 0) := "01100001";
-        constant A: std_logic_vector(7 downto 0) := "01000001";
+    process(reset, uart_byte_ready)
+        constant char_lower_a: std_logic_vector(7 downto 0) := "01100001";
+        constant char_upper_A: std_logic_vector(7 downto 0) := "01000001";
     begin
-        -- rising edge
+        if (reset'event)
+        then
+            uart_rx_reset <= '0' after 30ns;
+        end if;
         if (uart_byte_ready'event and uart_byte_ready = '1')
         then
             -- switch some LEDs for demonstration
-            if (received_byte = a)
+            if (uart_received_byte = char_lower_a)
             then
                 led_center <= '0';
             end if;
-            if (received_byte = A)
+            if (uart_received_byte = char_upper_A)
             then
                 led_center <= '1';
             end if;
@@ -97,4 +100,4 @@ begin
         end if; -- UART: byte ready
     end process; -- UART data interpreter
     
-end main;
+end;

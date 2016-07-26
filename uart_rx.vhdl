@@ -31,7 +31,7 @@ entity uart_rx is
         received_byte    : out std_logic_vector(7 downto 0);
         byte_ready       : out std_logic
     );
-end top;
+end;
  
 --
 -- UART receiver module implementation
@@ -43,7 +43,7 @@ begin
     -- executed, whenever the module is reset
     -- or a rising edge occurs on the main clock
     --
-    process(reset, clock_201mhz, rx)
+    process(reset, clock_12mhz, rx)
 
        variable tick_counter : integer range 0 to 1250 := 0;
        constant tick_overflow: integer := 1250; -- 12 MHz / 1250 = 9600 bps
@@ -59,39 +59,41 @@ begin
             receiving    := false;
             byte_ready  <= '0';
         
-        else if (clock_21mhz'event and clock_21mhz = '1')
-        then
-            -- divide master clock down to baud rate
-            if (tick_counter < tick_overflow)
+        else if (clock_12mhz'event and clock_12mhz = '1')
             then
-                tick_counter := tick_counter + 1;
-
-            else
-                // This block is evaluated at 9600 Hz
-                
-                if (receiving)
+                -- divide master clock down to baud rate
+                if (tick_counter < tick_overflow)
                 then
-                    -- save incoming bit at corresponding position in vector
-                    if (bit_counter < 8)
-                    then
-                        received_byte(bit_counter) <= rx;
-                        bit_counter := bit_counter + 1;
-                        if (bit_counter = 8)
-                        then
-                            -- 8 bits = 1 byte has been received
-                            byte_ready <= '1';
-                        end if;
-                    end if;
-                else
-                    -- if a start bit is received, initiate reception
-                    if (rx = '0')
-                    then
-                        receiving := true;
-                    end if; -- start bit
-                end if; -- receiving
+                    tick_counter := tick_counter + 1;
 
-                tick_counter := 0;
-            end if; -- UART clock
-        end if; -- 12 MHz clock
+                else
+                    -- This block is evaluated at 9600 Hz
+                    
+                    if (receiving)
+                    then
+                        -- save incoming bit at corresponding position in vector
+                        if (bit_counter < 8)
+                        then
+                            received_byte(bit_counter) <= rx;
+                            bit_counter := bit_counter + 1;
+                            if (bit_counter = 8)
+                            then
+                                -- 8 bits = 1 byte has been received
+                                byte_ready <= '1';
+                            end if;
+                        end if;
+                    else
+                        -- if a start bit is received, initiate reception
+                        if (rx = '0')
+                        then
+                            receiving := true;
+                        end if; -- start bit
+                    end if; -- receiving
+
+                    tick_counter := 0;
+                end if; -- UART clock
+            end if; -- 12 MHz clock
+        end if; -- reset
     end process; -- main
-end main;
+
+end;
