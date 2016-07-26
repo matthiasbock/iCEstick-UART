@@ -59,41 +59,40 @@ begin
             receiving    := false;
             byte_ready  <= '0';
         
-        else if (clock_12mhz'event and clock_12mhz = '1')
+        elsif (clock_12mhz'event and clock_12mhz = '1')
+        then
+            -- divide master clock down to baud rate
+            if (tick_counter < tick_overflow)
             then
-                -- divide master clock down to baud rate
-                if (tick_counter < tick_overflow)
+                tick_counter := tick_counter + 1;
+
+            else
+                -- This block is evaluated at 9600 Hz
+                
+                if (receiving)
                 then
-                    tick_counter := tick_counter + 1;
-
-                else
-                    -- This block is evaluated at 9600 Hz
-                    
-                    if (receiving)
+                    -- save incoming bit at corresponding position in vector
+                    if (bit_counter < 8)
                     then
-                        -- save incoming bit at corresponding position in vector
-                        if (bit_counter < 8)
+                        received_byte(bit_counter) <= rx;
+                        bit_counter := bit_counter + 1;
+                        if (bit_counter = 8)
                         then
-                            received_byte(bit_counter) <= rx;
-                            bit_counter := bit_counter + 1;
-                            if (bit_counter = 8)
-                            then
-                                -- 8 bits = 1 byte has been received
-                                byte_ready <= '1';
-                            end if;
+                            -- 8 bits = 1 byte has been received
+                            byte_ready <= '1';
                         end if;
-                    else
-                        -- if a start bit is received, initiate reception
-                        if (rx = '0')
-                        then
-                            receiving := true;
-                        end if; -- start bit
-                    end if; -- receiving
+                    end if;
+                else
+                    -- if a start bit is received, initiate reception
+                    if (rx = '0')
+                    then
+                        receiving := true;
+                    end if; -- start bit
+                end if; -- receiving
 
-                    tick_counter := 0;
-                end if; -- UART clock
-            end if; -- 12 MHz clock
-        end if; -- reset
+                tick_counter := 0;
+            end if; -- UART clock
+        end if; -- 12 MHz clock
     end process; -- main
 
 end;
