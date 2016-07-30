@@ -18,6 +18,8 @@ entity top is
         -- serial port interface to computer
         rx               : in  std_logic;
         tx               : out std_logic;
+
+        test             : out std_logic;
         
         -- LED outputs
         led_top          : out std_logic;
@@ -44,6 +46,8 @@ architecture main of top is
             
             -- the receiving pin of the RS-232 transmission
             rx               : in  std_logic;
+
+            test             : out std_logic;
             
             -- output received byte
             received_byte    : out std_logic_vector(7 downto 0);
@@ -61,15 +65,23 @@ begin
     -- manage reset signals
     reset <= '0' after 30ns;
     
-    -- instantiate included entities
+    -- instantiate a UART receiver entity
     my_uart_receiver: uart_rx
     port map(
             clock_12mhz      => clock_12mhz,
             reset            => uart_rx_reset,
             rx               => rx,
+            test             => test,
             received_byte    => uart_received_byte,
             byte_ready       => uart_byte_ready
             );
+
+    -- verify byte reception
+    led_center <= uart_received_byte(0);
+    led_top <= uart_received_byte(1);
+    led_left <= uart_received_byte(2);
+    led_bottom <= uart_received_byte(3);
+    led_right <= uart_received_byte(4);
 
     --
     -- Interpreter for via UART received bytes
@@ -85,14 +97,14 @@ begin
         if (uart_byte_ready'event and uart_byte_ready = '1')
         then
             -- switch some LEDs for demonstration
-            if (uart_received_byte = char_lower_a)
-            then
-                led_center <= '0';
-            end if;
-            if (uart_received_byte = char_upper_A)
-            then
-                led_center <= '1';
-            end if;
+            -- if (uart_received_byte = char_lower_a)
+            -- then
+                -- led_center <= '0';
+            -- end if;
+            -- if (uart_received_byte = char_upper_A)
+            -- then
+                -- led_center <= '1';
+            -- end if;
         
             -- prepare UART receiver for next reception
             uart_rx_reset <= '1';

@@ -26,6 +26,7 @@ entity uart_rx is
         
         -- the receiving pin of the RS-232 transmission
         rx               : in  std_logic;
+        test             : out std_logic;
         
         -- output received byte
         received_byte    : out std_logic_vector(7 downto 0);
@@ -51,6 +52,8 @@ begin
        variable receiving    : boolean := false;
        variable bit_counter  : integer range 0 to 8 := 0;
 
+       variable toggler      : std_logic := '0';
+       
     begin
         if (reset = '1')
         then
@@ -68,7 +71,17 @@ begin
 
             else
                 -- This block is evaluated at 9600 Hz
+
+                -- verify baud frequency
+                if (toggler = '0')
+                then
+                    toggler := '1';
+                else
+                    toggler := '0';
+                end if;
+                test <= toggler;
                 
+                -- are we receiving a byte yet?
                 if (receiving)
                 then
                     -- save incoming bit at corresponding position in vector
@@ -76,11 +89,9 @@ begin
                     then
                         received_byte(bit_counter) <= rx;
                         bit_counter := bit_counter + 1;
-                        if (bit_counter = 8)
-                        then
-                            -- 8 bits = 1 byte has been received
-                            byte_ready <= '1';
-                        end if;
+                    else
+                        -- 8 or more bits have been received
+                        byte_ready <= '1';
                     end if;
                 else
                     -- if a start bit is received, initiate reception
