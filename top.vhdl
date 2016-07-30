@@ -77,8 +77,8 @@ begin
             );
 
     -- verify byte reception
-    led_center <= uart_received_byte(0);
-    led_top <= uart_received_byte(1);
+    led_center <= test;
+    led_top <= uart_received_byte(0);
     led_left <= uart_received_byte(2);
     led_bottom <= uart_received_byte(3);
     led_right <= uart_received_byte(4);

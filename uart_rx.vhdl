@@ -50,7 +50,7 @@ begin
        constant tick_overflow: integer := 1250; -- 12 MHz / 1250 = 9600 bps
 
        variable receiving    : boolean := false;
-       variable bit_counter  : integer range 0 to 8 := 0;
+       variable bit_counter  : integer range 0 to 1023 := 0;
 
        variable toggler      : std_logic := '0';
        
@@ -64,6 +64,13 @@ begin
         
         elsif (clock_12mhz'event and clock_12mhz = '1')
         then
+            if (receiving)
+            then
+                test <= '1';
+            else
+                test <= '0';
+            end if;
+
             -- divide master clock down to baud rate
             if (tick_counter < tick_overflow)
             then
@@ -79,16 +86,21 @@ begin
                 else
                     toggler := '0';
                 end if;
-                test <= toggler;
+                --test <= toggler;
                 
                 -- are we receiving a byte yet?
                 if (receiving)
                 then
                     -- save incoming bit at corresponding position in vector
+                    bit_counter := bit_counter + 1;
                     if (bit_counter < 8)
                     then
                         received_byte(bit_counter) <= rx;
-                        bit_counter := bit_counter + 1;
+                    elsif (bit_counter = 1023)
+                    then
+                        bit_counter := 0;
+                        byte_ready <= '0';
+                        receiving := false;
                     else
                         -- 8 or more bits have been received
                         byte_ready <= '1';
