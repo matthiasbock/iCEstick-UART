@@ -18,6 +18,7 @@ entity top is
         -- serial port interface to computer
         rx               : in  std_logic;
         tx               : out std_logic;
+        rts              : in  std_logic;
         cts              : out std_logic;
 
         test             : out std_logic;
@@ -81,10 +82,15 @@ architecture main of top is
 
     signal reset : std_logic := '1';
 
+    -- UART-RX
     signal uart_rx_reset      : std_logic := '1';
     signal uart_received_byte : std_logic_vector(7 downto 0);
     signal uart_byte_ready    : std_logic := '0';
 
+    --UART-TX
+    signal uart_transmit_byte : std_logic_vector(7 downto 0);
+    signal uart_send          : std_logic := '0';
+    signal uart_sent          : std_logic := '0';
 begin
     -- manage reset signals
     reset <= '0' after 30ns;
@@ -101,17 +107,31 @@ begin
             byte_ready       => uart_byte_ready
             );
 
+    my_uart_transmitter: uart_tx
+    port map(
+            clock_12mhz      => clock_12mhz,
+            reset            => reset,
+            tx               => tx,
+            rts              => rts,
+            data             => uart_transmit_byte,
+            send             => uart_send,
+            sent             => uart_sent
+            );
+
     -- verify byte reception
-    led_center <= cts;
-    led_top <= uart_received_byte(0);
+    led_center <= rts;
+    led_top <= uart_send;
     led_left <= uart_received_byte(2);
-    led_bottom <= uart_received_byte(3);
+    led_bottom <= uart_sent;
     led_right <= uart_received_byte(4);
+
+    uart_transmit_byte <= uart_received_byte;
+    uart_send <= uart_byte_ready;
 
     --
     -- Interpreter for via UART received bytes
     --
-    process(reset, uart_byte_ready)
+    process(clock_12mhz, uart_byte_ready)
         constant char_lower_a: std_logic_vector(7 downto 0) := "01100001";
         constant char_upper_A: std_logic_vector(7 downto 0) := "01000001";
     begin
@@ -121,16 +141,6 @@ begin
         end if;
         if (uart_byte_ready'event and uart_byte_ready = '1')
         then
-            -- switch some LEDs for demonstration
-            -- if (uart_received_byte = char_lower_a)
-            -- then
-                -- led_center <= '0';
-            -- end if;
-            -- if (uart_received_byte = char_upper_A)
-            -- then
-                -- led_center <= '1';
-            -- end if;
-        
             -- prepare UART receiver for next reception
             uart_rx_reset <= '1';
             uart_rx_reset <= '0' after 30ns;

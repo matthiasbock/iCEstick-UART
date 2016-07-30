@@ -89,10 +89,16 @@ begin
                     then
                         tx <= data(bit_counter-1);
                         sent <= '0';
+                    elsif (bit_counter = 9)
+                    then
+                        -- stopp bit
+                        tx <= '0';
+                        sent <= '0';
                     else
                         -- 8 bits have been sent
-                        sending := false;
+                        tx <= '1';
                         sent <= '1';
+                        sending := false;
                     end if;
                     bit_counter := bit_counter + 1;
                 end if; -- receiving
