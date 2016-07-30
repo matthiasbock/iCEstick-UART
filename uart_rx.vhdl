@@ -24,7 +24,7 @@ entity uart_rx is
         -- resets module from standby before and after data reception
         reset            : in  std_logic;
         
-        -- the receiving pin of the RS-232 transmission
+        -- the receiving pin of the RS-232 connection
         rx               : in  std_logic;
         -- Clear-To-Send: Here the FPGA can indicate, that it's ready to receive more data
         cts              : out std_logic;

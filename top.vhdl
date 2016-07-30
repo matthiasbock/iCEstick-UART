@@ -58,7 +58,27 @@ architecture main of top is
             byte_ready       : out std_logic
             );
     end component;
-    
+
+    component uart_tx is
+        port(
+            -- 21 MHz input clock
+            clock_12mhz      : in  std_logic;
+            
+            -- resets module from standby before and after data reception
+            reset            : in  std_logic;
+            
+            -- the transmitting pin of the RS-232 connection
+            tx               : out std_logic;
+            -- Request-To-Send: Here the FPGA waits for the receiver to get ready for reception
+            rts              : in  std_logic;
+            
+            -- transmit byte
+            data             : in  std_logic_vector(7 downto 0);
+            send             : in  std_logic;
+            sent             : out std_logic
+        );
+    end component;
+
     signal reset : std_logic := '1';
 
     signal uart_rx_reset      : std_logic := '1';
