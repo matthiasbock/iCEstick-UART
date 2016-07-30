@@ -26,6 +26,9 @@ entity uart_rx is
         
         -- the receiving pin of the RS-232 transmission
         rx               : in  std_logic;
+        -- Clear-To-Send: Here the FPGA can indicate, that it's ready to receive more data
+        cts              : out std_logic;
+        
         test             : out std_logic;
         
         -- output received byte
@@ -44,13 +47,13 @@ begin
     -- executed, whenever the module is reset
     -- or a rising edge occurs on the main clock
     --
-    process(reset, clock_12mhz, rx)
+    process(reset, clock_12mhz)
 
        variable tick_counter : integer range 0 to 1250 := 0;
        constant tick_overflow: integer := 1250; -- 12 MHz / 1250 = 9600 bps
 
        variable receiving    : boolean := false;
-       variable bit_counter  : integer range 0 to 1023 := 0;
+       variable bit_counter  : integer range 0 to 31 := 0;
 
        variable toggler      : std_logic := '0';
        
@@ -61,15 +64,18 @@ begin
             bit_counter  := 0;
             receiving    := false;
             byte_ready  <= '0';
+            
+            cts         <= '0';
+            test        <= '0';
         
         elsif (clock_12mhz'event and clock_12mhz = '1')
         then
-            if (receiving)
-            then
-                test <= '1';
-            else
-                test <= '0';
-            end if;
+            -- if (receiving)
+            -- then
+                -- test <= '1';
+            -- else
+                -- test <= '0';
+            -- end if;
 
             -- divide master clock down to baud rate
             if (tick_counter < tick_overflow)
@@ -80,12 +86,12 @@ begin
                 -- This block is evaluated at 9600 Hz
 
                 -- verify baud frequency
-                if (toggler = '0')
-                then
-                    toggler := '1';
-                else
-                    toggler := '0';
-                end if;
+                -- if (toggler = '0')
+                -- then
+                    -- toggler := '1';
+                -- else
+                    -- toggler := '0';
+                -- end if;
                 --test <= toggler;
                 
                 -- are we receiving a byte yet?
@@ -96,14 +102,18 @@ begin
                     if (bit_counter < 8)
                     then
                         received_byte(bit_counter) <= rx;
-                    elsif (bit_counter = 1023)
+                    elsif (bit_counter = 31)
                     then
                         bit_counter := 0;
                         byte_ready <= '0';
                         receiving := false;
+                        cts <= '0';
+                        test <= '0';
                     else
                         -- 8 or more bits have been received
                         byte_ready <= '1';
+                        cts <= '1';
+                        test <= '1';
                     end if;
                 else
                     -- if a start bit is received, initiate reception

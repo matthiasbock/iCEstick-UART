@@ -18,6 +18,7 @@ entity top is
         -- serial port interface to computer
         rx               : in  std_logic;
         tx               : out std_logic;
+        cts              : out std_logic;
 
         test             : out std_logic;
         
@@ -44,8 +45,11 @@ architecture main of top is
             -- resets module from standby before and after data reception
             reset            : in  std_logic;
             
-            -- the receiving pin of the RS-232 transmission
+            -- RS-232 transmission:
+            -- the data receiving pin
             rx               : in  std_logic;
+            -- the Clear-To-Send pin
+            cts              : out std_logic;
 
             test             : out std_logic;
             
@@ -71,13 +75,14 @@ begin
             clock_12mhz      => clock_12mhz,
             reset            => uart_rx_reset,
             rx               => rx,
+            cts              => cts,
             test             => test,
             received_byte    => uart_received_byte,
             byte_ready       => uart_byte_ready
             );
 
     -- verify byte reception
-    led_center <= test;
+    led_center <= cts;
     led_top <= uart_received_byte(0);
     led_left <= uart_received_byte(2);
     led_bottom <= uart_received_byte(3);
