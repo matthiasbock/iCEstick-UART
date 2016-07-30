@@ -7,8 +7,13 @@
 
 set_io clock_12mhz 21
 
-set_io rx 9
+set_io dcd 1
+set_io dsr 2
+set_io dtr 3
+set_io cts 4
+set_io rts 7
 set_io tx 8
+set_io rx 9
 
 set_io test 119
 
