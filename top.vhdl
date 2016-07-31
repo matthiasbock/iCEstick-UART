@@ -12,7 +12,7 @@ use ieee.numeric_bit.all;
 --
 entity top is
     port(
-        -- 201 MHz clock input
+        -- 12 MHz clock input
         clock_12mhz      : in  std_logic;
         
         -- serial port interface to computer

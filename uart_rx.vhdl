@@ -18,7 +18,7 @@ use ieee.numeric_bit.all;
 --
 entity uart_rx is
     port(
-        -- 21 MHz input clock
+        -- 12 MHz input clock
         clock_12mhz      : in  std_logic;
         
         -- resets module from standby before and after data reception
