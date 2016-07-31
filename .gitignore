@@ -6,6 +6,4 @@ synlog.tcl
 .project
 .settings/
 
-*.prj
-*.project
 *.xcf
