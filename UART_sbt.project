@@ -4,7 +4,7 @@ Version=Lattice Semiconductor Corporation iCEcube - Release: 2016.02.27810 - Bui
 ProjectName=UART
 Vendor=SiliconBlue
 Synthesis=synplify
-ProjectVFiles=top.vhdl,uart_rx.vhdl,uart_tx.vhdl
+ProjectVFiles=top.vhdl=work,uart_rx.vhdl=work,uart_tx.vhdl=work
 ProjectCFiles=
 CurImplementation=UART_Implmnt
 Implementations=UART_Implmnt
@@ -80,8 +80,8 @@ BitmapOscillatorFR=low
 BitmapEnableWarmBoot=yes
 BitmapDisableHeader=no
 BitmapSetSecurity=no
-BitmapSetNoUsedIONoPullup=no
+BitmapSetNoUsedIONoPullup=yes
 FloorPlannerShowFanInNets=yes
 FloorPlannerShowFanOutNets=yes
-HookTo3rdPartyTextEditor=
+HookTo3rdPartyTextEditor=no
 
