@@ -1,40 +1,42 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.std_logic_arith.all;
-use IEEE.std_logic_signed.all;
-use IEEE.std_logic_unsigned.all;
 use ieee.numeric_std.all;
-use ieee.numeric_bit.all;
 
 --
 -- This module monitors the RX pin
 -- for incoming data and outputs the received bytes
 -- for superior modules to work with
 --
--- A rising edge is presented on the byte_ready signal,
--- when 8 bits have been received, which are presented via received_byte.
+-- A rising edge is presented on the uart_rx_data_ready signal,
+-- when 8 bits have been received, which are presented via uart_rx_data.
 -- The module must be reset initially and after every
 -- received byte in order to accept new data. 
 --
 entity uart_rx is
     port(
         -- 12 MHz input clock
-        clock_12mhz      : in  std_logic;
+        uart_rx_clock_12mhz      : in  std_logic;
         
         -- resets module from standby before and after data reception
-        reset            : in  std_logic;
+        uart_rx_reset            : in  std_logic;
         
         -- the receiving pin of the RS-232 connection
-        rx               : in  std_logic;
+        uart_rx_pin_rx           : in  std_logic;
         -- Clear-To-Send: Here the FPGA can indicate, that it's ready to receive more data
-        cts              : out std_logic;
-        
-        test             : out std_logic;
+        uart_rx_pin_cts          : out std_logic;
         
         -- output received byte
-        received_byte    : out std_logic_vector(7 downto 0);
-        byte_ready       : out std_logic
+        uart_rx_data             : out std_logic_vector(7 downto 0);
+        uart_rx_data_ready       : out std_logic
     );
+    
+    --
+    -- Workaround for apparent bug in iCEcube2 2016.02.27810:
+    -- Synthesizer removes registers, which are used by other entities
+    --
+    attribute syn_preserve : boolean;
+    attribute syn_preserve of uart_rx_pin_cts : signal is true;
+    attribute syn_preserve of uart_rx_data_ready : signal is true;
 end;
  
 --
@@ -47,7 +49,7 @@ begin
     -- executed, whenever the module is reset
     -- or a rising edge occurs on the main clock
     --
-    process(reset, clock_12mhz)
+    process(uart_rx_reset, uart_rx_clock_12mhz)
 
        variable tick_counter : integer range 0 to 1250 := 0;
        constant tick_overflow: integer := 1250; -- 12 MHz / 1250 = 9600 bps
@@ -58,24 +60,16 @@ begin
        variable toggler      : std_logic := '0';
        
     begin
-        if (reset = '1')
+        if (uart_rx_reset = '1')
         then
             tick_counter := 0;
             bit_counter  := 0;
             receiving    := false;
-            byte_ready  <= '0';
-            
-            cts         <= '0';
-            test        <= '0';
+            uart_rx_data_ready <= '0';
+            uart_rx_pin_cts <= '0';
         
-        elsif (clock_12mhz'event and clock_12mhz = '1')
+        elsif (uart_rx_clock_12mhz'event and uart_rx_clock_12mhz = '1')
         then
-            -- if (receiving)
-            -- then
-                -- test <= '1';
-            -- else
-                -- test <= '0';
-            -- end if;
 
             -- divide master clock down to baud rate
             if (tick_counter < tick_overflow)
@@ -85,15 +79,6 @@ begin
             else
                 -- This block is evaluated at 9600 Hz
 
-                -- verify baud frequency
-                -- if (toggler = '0')
-                -- then
-                    -- toggler := '1';
-                -- else
-                    -- toggler := '0';
-                -- end if;
-                --test <= toggler;
-                
                 -- are we receiving a byte yet?
                 if (receiving)
                 then
@@ -101,23 +86,21 @@ begin
                     bit_counter := bit_counter + 1;
                     if (bit_counter < 8)
                     then
-                        received_byte(bit_counter) <= rx;
+                        uart_rx_data(bit_counter) <= uart_rx_pin_rx;
                     elsif (bit_counter = 31)
                     then
                         bit_counter := 0;
-                        byte_ready <= '0';
+                        uart_rx_data_ready <= '0';
                         receiving := false;
-                        cts <= '0';
-                        test <= '0';
+                        uart_rx_pin_cts <= '0';
                     else
                         -- 8 or more bits have been received
-                        byte_ready <= '1';
-                        cts <= '1';
-                        test <= '1';
+                        uart_rx_data_ready <= '1';
+                        uart_rx_pin_cts <= '1';
                     end if;
                 else
                     -- if a start bit is received, initiate reception
-                    if (rx = '0')
+                    if (uart_rx_pin_rx = '0')
                     then
                         receiving := true;
                     end if; -- start bit
