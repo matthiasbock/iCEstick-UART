@@ -1,6 +1,7 @@
 *_Implmnt/
 *.log
 synlog.tcl
+licbug.txt
 *.bak
 *.*~
 .project

@@ -1,10 +1,11 @@
 #-- Synopsys, Inc.
-#-- Project file R:\FPGA\UART\UART_syn.prj
+#-- Project file /home/user/Desktop/Lattice projects/UART/UART_syn.prj
 #project files
 
 add_file -vhdl -lib work "top.vhdl" 
 add_file -vhdl -lib work "uart_rx.vhdl" 
 add_file -vhdl -lib work "uart_tx.vhdl" 
+add_file -vhdl -lib work "uart_rx_buffer.vhdl" 
 #implementation: "UART_Implmnt"
 impl -add UART_Implmnt -type fpga
 

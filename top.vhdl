@@ -3,8 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 --
--- This is a demo for the UART RX module
---
+-- UART Demo:
+-- Receive byte on the RX pin and show received data via onboard LEDs
 --
 entity top is
     port(
