@@ -1,10 +1,10 @@
 [Project]
 ProjectVersion=2.0
-Version=Lattice Semiconductor Corporation iCEcube - Release: 2014.12.27052 - Build Date: Dec 8 2014 15:51:44
+Version=Lattice Semiconductor Corporation iCEcube - Release: 2016.02.27810 - Build Date: Jan 28 2016 18:12:42
 ProjectName=UART
 Vendor=SiliconBlue
 Synthesis=synplify
-ProjectVFiles=top.vhdl=work,uart_rx.vhdl=work,uart_tx.vhdl=work,uart_rx_buffer.vhdl
+ProjectVFiles=top.vhdl=work,uart_rx.vhdl=work,uart_rx_buffer.vhdl=work
 ProjectCFiles=
 CurImplementation=UART_Implmnt
 Implementations=UART_Implmnt
@@ -19,9 +19,9 @@ DevicePower=
 NetlistFile=UART_Implmnt/UART.edf
 AdditionalEDIFFile=
 IPEDIFFile=
-DesignLib=
-DesignView=
-DesignCell=
+DesignLib=UART_Implmnt/sbt/netlist/oadb-top
+DesignView=_rt
+DesignCell=top
 SynthesisSDCFile=UART_Implmnt/UART.scf
 UserPinConstraintFile=
 UserSDCFile=
@@ -48,6 +48,7 @@ FSMEncodingStyle=Auto
 FixGatedClocks=True
 I/OInsertion=True
 IntermediateFileDump=True
+LoopLimit=1950
 MaximalFanout=10000
 MemoryInitialValueFileSearchPath=
 NumberOfCriticalPaths=3

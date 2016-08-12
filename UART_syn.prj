@@ -4,7 +4,6 @@
 
 add_file -vhdl -lib work "top.vhdl" 
 add_file -vhdl -lib work "uart_rx.vhdl" 
-add_file -vhdl -lib work "uart_tx.vhdl" 
 add_file -vhdl -lib work "uart_rx_buffer.vhdl" 
 #implementation: "UART_Implmnt"
 impl -add UART_Implmnt -type fpga
