@@ -37,6 +37,7 @@ entity uart_rx is
     attribute syn_preserve : boolean;
     -- attribute syn_preserve of uart_rx_pin_cts : signal is true;
     attribute syn_preserve of uart_rx_data_ready : signal is true;
+    attribute syn_preserve of uart_rx_data : signal is true;
 end;
  
 --
@@ -92,10 +93,13 @@ begin
                         -- 8 or more bits have been received
                         -- output received byte
                         uart_rx_data <= data;
-                        -- invoke byte received event
-                        uart_rx_data_ready <= '1';
                         -- uart_rx_pin_cts <= '1';
                         bit_counter := 9;
+                    elsif (bit_counter = 9)
+                    then
+                        -- invoke byte received event
+                        uart_rx_data_ready <= '1';
+                        bit_counter := 10;
                     else
                         -- begin anew
                         bit_counter := 0;
