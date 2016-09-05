@@ -108,8 +108,11 @@ begin
                     then
                         -- invoke byte received event
                         uart_rx_data_ready <= '1';
-                        -- higher functions have one clock pulse of time to process received data until line is cleared for next byte
+                        -- higher functions get some time to process received data until line is cleared for next byte
                         bit_counter := 10;
+                    elsif (bit_counter < 1000)
+                    then
+                        bit_counter := bit_counter + 1;
                     else
                         -- reset receiver
                         bit_counter := 0;
