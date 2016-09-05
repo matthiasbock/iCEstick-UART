@@ -17,15 +17,17 @@ entity uart_rx is
         -- 12 MHz input clock
         uart_rx_clock_12mhz      : in  std_logic;
         
-        -- resets module from standby before and after data reception
+        -- reset this module once at FPGA startup!
         uart_rx_reset            : in  std_logic;
         
         -- the receiving pin of the RS-232 connection
         uart_rx_pin_rx           : in  std_logic;
-        -- Clear-To-Send: Here the FPGA can indicate, that it's ready to receive more data
-        -- uart_rx_pin_cts          : out std_logic;
+        -- Clear To Send: On this pin the FPGA can indicate, that it's ready to receive more data
+        uart_rx_pin_cts          : out std_logic;
+        -- Data Set Ready: On this pin the FPGA can indicate, that it's ready to receive more data
+        uart_rx_pin_dsr          : out std_logic;
         
-        -- output received byte
+        -- the byte received on the serial port
         uart_rx_data             : out std_logic_vector(7 downto 0);
         uart_rx_data_ready       : out std_logic
     );
@@ -34,10 +36,11 @@ entity uart_rx is
     -- Workaround for apparent bug in iCEcube2 2016.02.27810:
     -- Synthesizer removes registers, which are used by other entities
     --
-    attribute syn_preserve : boolean;
-    -- attribute syn_preserve of uart_rx_pin_cts : signal is true;
-    attribute syn_preserve of uart_rx_data_ready : signal is true;
-    attribute syn_preserve of uart_rx_data : signal is true;
+    attribute syn_preserve: boolean;
+    attribute syn_preserve of uart_rx_pin_cts       : signal is true;
+    attribute syn_preserve of uart_rx_pin_dsr       : signal is true;
+    attribute syn_preserve of uart_rx_data          : signal is true;
+    attribute syn_preserve of uart_rx_data_ready    : signal is true;
 end;
  
 --
@@ -67,7 +70,10 @@ begin
             receiving    := false;
             uart_rx_data_ready <= '0';
             uart_rx_data <= (others => '0');
-            -- uart_rx_pin_cts <= '0';
+
+            -- ready to receive data
+            uart_rx_pin_cts <= '0';
+            uart_rx_pin_dsr <= '0';
         
         elsif (uart_rx_clock_12mhz'event and uart_rx_clock_12mhz = '1')
         then
@@ -91,21 +97,27 @@ begin
                     elsif (bit_counter = 8)
                     then
                         -- 8 or more bits have been received
-                        -- output received byte
+                        -- pass received byte to higher functions
                         uart_rx_data <= data;
-                        -- uart_rx_pin_cts <= '1';
+                        -- not ready to receive more data
+                        uart_rx_pin_cts <= '1';
+                        uart_rx_pin_dsr <= '1';
+                        -- wait one clock pulse to signal data readynes
                         bit_counter := 9;
                     elsif (bit_counter = 9)
                     then
                         -- invoke byte received event
                         uart_rx_data_ready <= '1';
+                        -- higher functions have one clock pulse of time to process received data until line is cleared for next byte
                         bit_counter := 10;
                     else
-                        -- begin anew
+                        -- reset receiver
                         bit_counter := 0;
                         uart_rx_data_ready <= '0';
                         receiving := false;
-                        -- uart_rx_pin_cts <= '0';
+                        -- ready to receive another byte
+                        uart_rx_pin_cts <= '0';
+                        uart_rx_pin_dsr <= '0';
                     end if;
                 else
                     -- if a start bit is received, initiate reception
