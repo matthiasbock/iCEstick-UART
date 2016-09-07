@@ -110,7 +110,7 @@ begin
                         uart_rx_data_ready <= '1';
                         -- higher functions get some time to process received data until line is cleared for next byte
                         bit_counter := 10;
-                    elsif (bit_counter < 1000)
+                    elsif (bit_counter < 100)
                     then
                         bit_counter := bit_counter + 1;
                     else
