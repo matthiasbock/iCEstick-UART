@@ -57,8 +57,10 @@ begin
 
        variable tick_counter : integer range 0 to 1250 := 0;
        constant tick_overflow: integer := 1250; -- 12 MHz / 1250 = 9600 bps
+       constant tick_middle  : integer := tick_overflow / 2;
 
        variable receiving    : boolean := false;
+       variable synchronized : boolean := false;
        variable bit_counter  : integer := 0;
        variable data         : std_logic_vector(7 downto 0) := (others => '0');
 
@@ -68,6 +70,7 @@ begin
             tick_counter := 0;
             bit_counter  := 0;
             receiving    := false;
+            synchronized := false;
             uart_rx_data_ready <= '0';
             uart_rx_data <= (others => '0');
 
@@ -77,7 +80,16 @@ begin
         
         elsif (uart_rx_clock_12mhz'event and uart_rx_clock_12mhz = '1')
         then
-
+            -- synchronize our UART counter on start bit
+            if ((not receiving)
+            and (uart_rx_pin_rx = '0')
+            and (not synchronized))
+            then
+                -- counter is set to half overflow, so that the following counter overflows occur in the middle of a signal bit
+                tick_counter := tick_middle;
+                synchronized := true;
+            end if;
+        
             -- divide master clock down to baud rate
             if (tick_counter < tick_overflow)
             then
@@ -113,6 +125,7 @@ begin
                     elsif (bit_counter < 100)
                     then
                         bit_counter := bit_counter + 1;
+                        synchronized := false;
                     else
                         -- reset receiver
                         bit_counter := 0;
